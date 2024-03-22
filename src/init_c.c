@@ -81,6 +81,11 @@ shmem_init(void)
     if (ret) abort();
 }
 
+int SHMEM_FUNCTION_ATTRIBUTES
+shmem_shrink(int new_size)
+{
+    return shmem_internal_shrink(new_size);
+}
 
 void SHMEM_FUNCTION_ATTRIBUTES
 shmemx_heap_preinit(void)

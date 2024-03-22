@@ -1,0 +1,18 @@
+## Sandia OpenSHMEM package metadata
+## Requires pkg-config 0.28 or later
+
+prefix=/home/parkerha/sos_out
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: sandia-openshmem
+Description: Sandia OpenSHMEM
+URL: https://github.com/Sandia-OpenSHMEM/SOS
+Version: 1.5.2
+Libs: -L${libdir}  -L/export/share/opt/libfabric/1.15.0/lib     -Wl,-rpath -Wl,/export/share/opt/libfabric/1.15.0/lib -Wl,-rpath -Wl,${exec_prefix}/lib -lsma  
+Cflags: -I${includedir}
+
+cxxflags=-I${includedir}
+fflags=-I${includedir}
+fcflags=-I${includedir}

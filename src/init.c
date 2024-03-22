@@ -186,6 +186,11 @@ shmem_internal_start_pes(int npes)
     if (ret) abort();
 }
 
+int
+shmem_internal_shrink(int new_size)
+{
+    return shmem_runtime_shrink(new_size);
+}
 
 int
 shmem_internal_heap_preinit(int tl_requested, int *tl_provided)
