@@ -33,7 +33,7 @@
 
 static int rank = -1;
 static int size = 0;
-MPI_Comm SHMEM_RUNTIME_WORLD, SHMEM_RUNTIME_SHARED;
+MPI_Comm SHMEM_RUNTIME_WORLD, SHMEM_RUNTIME_SHARED, SHMEM_RUNTIME_POOL;
 static int kv_length = 0;
 static int initialized_mpi = 0;
 static int node_size;
@@ -111,14 +111,15 @@ shmem_runtime_init(int enable_node_ranks)
 int
 shmem_runtime_shrink(int newSize) {
     printf("Doing a shrink operation\n");
-    MPI_Group world_group, new_group;
-    MPI_Comm new_comm;
-    int rank, *ranks, i, world_size;
+    MPI_Group world_group, new_group, pool_group;
+    MPI_Comm new_comm = MPI_COMM_NULL, pool_comm = MPI_COMM_NULL;
+    int rank, *ranks, i, world_size, ret;
 
     MPI_Comm_rank(SHMEM_RUNTIME_WORLD, &rank);
     MPI_Comm_size(SHMEM_RUNTIME_WORLD, &world_size);
 
     printf("rank: %d, size: %d\n", rank, world_size);
+    fflush(stdout);
     ranks = (int*)malloc(newSize * sizeof(int));
     if (ranks == NULL) {
         return -1;
@@ -129,23 +130,58 @@ shmem_runtime_shrink(int newSize) {
     }
 
     // Get the group of the existing communicator
-    MPI_Comm_group(SHMEM_RUNTIME_WORLD, &world_group);
-    printf("1\n"); // Create a new group from the existing group with only the first 'newSize' ranks
-    MPI_Group_incl(world_group, newSize, ranks, &new_group);
-    printf("2\n");
-    // Create a new communicator based on the new group
-    MPI_Comm_create(SHMEM_RUNTIME_WORLD, new_group, &new_comm);
-    printf("3\n");
+    if (MPI_SUCCESS != MPI_Comm_group(SHMEM_RUNTIME_WORLD, &world_group)) {
+        printf("MPI_Comm_group:\n"); 
+        fflush(stdout);
+        return 2;
+    }
+    // Create a new group from the existing group with only the first 'newSize' ranks
+    ret = MPI_Group_incl(world_group, newSize, ranks, &new_group);
+    printf("MPI_Group_incl: %d\n", ret);
+    fflush(stdout);
+
+    ret = MPI_Group_excl(world_group, newSize, ranks, &pool_group);
+    printf("MPI_Group_excl: %d\n", ret);
+    fflush(stdout);
+
     if (rank < newSize) {
-        MPI_Comm_free(&SHMEM_RUNTIME_WORLD); // Free the old communicator
-        SHMEM_RUNTIME_WORLD = new_comm; // Use the new communicator
+        ret = MPI_Comm_create(SHMEM_RUNTIME_WORLD, new_group, &new_comm);
     } else {
-        // Ranks outside the new communicator should handle their state appropriately,
-        // potentially finalizing their MPI state if they are no longer participating.
+        // Create a new communicator for PEs not in the new group (SHMEM_RUNTIME_POOL)
+        ret = MPI_Comm_create(SHMEM_RUNTIME_WORLD, pool_group, &pool_comm);
+    }
+    printf("MPI_Comm_create: %d - PE[%d]\n", ret, rank);
+    fflush(stdout);
+    if (MPI_SUCCESS != ret) {
+        return ret;
     }
 
+    MPI_Barrier(SHMEM_RUNTIME_WORLD);
+    if (SHMEM_RUNTIME_WORLD != MPI_COMM_NULL) {
+        printf("MPI_Comm_free: %d - PE[%d]\n", ret, rank);
+        fflush(stdout);
+    }
+
+    if (rank + 1 < newSize && new_comm != MPI_COMM_NULL) {
+        // Optionally replace SHMEM_RUNTIME_WORLD for PEs in the new group
+        ret = MPI_Comm_free(&SHMEM_RUNTIME_WORLD);
+        //printf("Replacing SHMEM_RUNTIME_WORLD with new comm\n");
+        fflush(stdout);
+        SHMEM_RUNTIME_WORLD = new_comm;
+    } else if (rank >= newSize && pool_comm != MPI_COMM_NULL) {
+        // Update SHMEM_RUNTIME_POOL for PEs not in the new group
+        SHMEM_RUNTIME_POOL = pool_comm;
+    }
+
+    if (rank < newSize) {
+        MPI_Barrier(SHMEM_RUNTIME_WORLD);
+        MPI_Comm_size(SHMEM_RUNTIME_WORLD, &world_size);
+        printf("new world size: %d\n", world_size);    
+    }
     MPI_Group_free(&world_group);
     MPI_Group_free(&new_group);
+    MPI_Group_free(&pool_group);
+
     free(ranks);
 
     return 0; 
@@ -210,12 +246,14 @@ shmem_runtime_abort(int exit_code, const char msg[])
 int
 shmem_runtime_get_rank(void)
 {
+    MPI_Comm_rank(SHMEM_RUNTIME_WORLD, &rank);
     return rank;
 }
 
 int
 shmem_runtime_get_size(void)
 {
+    MPI_Comm_size(SHMEM_RUNTIME_WORLD, &size);
     return size;
 }
 
