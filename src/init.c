@@ -142,24 +142,24 @@ shmem_internal_shutdown(void)
         shmem_internal_finalized) {
         return;
     }
-
+    
     shmem_internal_barrier_all();
-
+    
     shmem_internal_finalized = 1;
-
+    
     shmem_internal_team_fini();
-
+    
     shmem_transport_fini();
-
+    
     shmem_shr_transport_fini();
-
+    
     SHMEM_MUTEX_DESTROY(shmem_internal_mutex_alloc);
-
+    
     shmem_internal_randr_fini();
-
+    
     shmem_internal_symmetric_fini();
-    shmem_runtime_fini();
-}
+        shmem_runtime_fini();
+    }
 
 
 static void
@@ -189,7 +189,12 @@ shmem_internal_start_pes(int npes)
 int
 shmem_internal_shrink(int new_size)
 {
-    return shmem_runtime_shrink(new_size);
+    int ret;
+    ret = shmem_runtime_shrink(new_size);
+    if (ret == 0) {
+        shmem_internal_num_pes = shmem_runtime_get_size();
+    }
+    return ret;
 }
 
 int

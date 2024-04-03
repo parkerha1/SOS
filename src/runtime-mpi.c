@@ -32,8 +32,8 @@
 #define MAX_KV_LENGTH 512
 
 static int rank = -1;
-static int size = 0;
-MPI_Comm SHMEM_RUNTIME_WORLD, SHMEM_RUNTIME_SHARED, SHMEM_RUNTIME_POOL;
+int size = 0;
+MPI_Comm SHMEM_RUNTIME_WORLD, SHMEM_RUNTIME_SHARED;
 static int kv_length = 0;
 static int initialized_mpi = 0;
 static int node_size;
@@ -162,28 +162,29 @@ shmem_runtime_shrink(int newSize) {
         fflush(stdout);
     }
 
-    if (rank + 1 < newSize && new_comm != MPI_COMM_NULL) {
-        // Optionally replace SHMEM_RUNTIME_WORLD for PEs in the new group
+    if (rank < newSize && new_comm != MPI_COMM_NULL) {
         ret = MPI_Comm_free(&SHMEM_RUNTIME_WORLD);
         //printf("Replacing SHMEM_RUNTIME_WORLD with new comm\n");
         fflush(stdout);
         SHMEM_RUNTIME_WORLD = new_comm;
     } else if (rank >= newSize && pool_comm != MPI_COMM_NULL) {
         // Update SHMEM_RUNTIME_POOL for PEs not in the new group
-        SHMEM_RUNTIME_POOL = pool_comm;
+        MPI_Comm_disconnect(&SHMEM_RUNTIME_WORLD);
+        printf("Disconnected and finalizing for PE[%d]\n", rank);
+        fflush(stdout);
+        MPI_Finalize(); // This call will terminate the MPI environment for these processes
+        printf("Finalized for PE[%d]\n", rank);
+        fflush(stdout);
+        return -1; // Ensure a clean exit after MPI_Finalize
     }
 
-    if (rank < newSize) {
-        MPI_Barrier(SHMEM_RUNTIME_WORLD);
-        MPI_Comm_size(SHMEM_RUNTIME_WORLD, &world_size);
-        printf("new world size: %d\n", world_size);    
-    }
     MPI_Group_free(&world_group);
     MPI_Group_free(&new_group);
     MPI_Group_free(&pool_group);
 
     free(ranks);
-
+    printf("Made it to the end of shrink on PE[%d]\n", rank);
+    fflush(stdout);
     return 0; 
 }
 
@@ -192,16 +193,13 @@ shmem_runtime_fini(void)
 {
     int ret = MPI_SUCCESS;
     int finalized = 0;
-
     if (node_ranks) {
         MPI_Comm_free(&SHMEM_RUNTIME_SHARED);
         free(node_ranks);
     }
 
     MPI_Comm_free(&SHMEM_RUNTIME_WORLD);
-
     MPI_Finalized(&finalized);
-
     if (initialized_mpi) {
         if (finalized) {
             RAISE_WARN_STR("MPI was already finalized");
@@ -210,12 +208,10 @@ shmem_runtime_fini(void)
         }
         initialized_mpi = 0;
     }
-
     free(kv_store_all);
     if (size != 1) {
         free(kv_store_me);
     }
-
     return ret != MPI_SUCCESS;
 }
 
