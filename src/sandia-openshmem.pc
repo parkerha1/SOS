@@ -1,7 +1,7 @@
 ## Sandia OpenSHMEM package metadata
 ## Requires pkg-config 0.28 or later
 
-prefix=/home/parkerha/sos_out
+prefix=/global/homes/p/parkerha/SOS
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include

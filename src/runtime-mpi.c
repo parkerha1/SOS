@@ -109,14 +109,49 @@ shmem_runtime_init(int enable_node_ranks)
 }
 
 int
-shmem_runtime_grow(int newSize) {
-    printf("Grow operation\n");
+shmem_runtime_grow(int new_size, int is_child) {
+    int rank, world_size, ret, i;
+    MPI_Comm joint_comm; // New communicator including all initial and spawned processes
+    char *worker_program = "./test";
+    MPI_Comm_rank(SHMEM_RUNTIME_WORLD, &rank);
+    MPI_Comm_size(SHMEM_RUNTIME_WORLD, &world_size);
+    printf("rank: %d, attempting to grow to size: %d, child=%d\n", rank, new_size, is_child);
+
     fflush(stdout);
+    if(!is_child) {
+        char *mpi_argv[] = {"1", NULL};
+        int spawn_count = new_size - world_size;
+        if (spawn_count > 0) {
+            ret = MPI_Comm_spawn(worker_program, mpi_argv, spawn_count, 
+                                    MPI_INFO_NULL, 0, SHMEM_RUNTIME_WORLD, &joint_comm, MPI_ERRCODES_IGNORE);
+            if (ret != MPI_SUCCESS) {
+                printf("Error spawning new processes\n");
+                fflush(stdout);
+                return -1;
+            }
+        } else {
+            printf("New size not greater than current size, no processes spawned\n");
+            fflush(stdout);
+            return 0; 
+        }
+    } else {
+        MPI_Comm_get_parent(&joint_comm);
+    }
+    // At this point, `joint_comm` includes both old and new processes
+    MPI_Barrier(joint_comm); 
+
+    ret = MPI_Comm_free(&SHMEM_RUNTIME_WORLD);
+    printf("Replacing SHMEM_RUNTIME_WORLD with new comm\n");
+    fflush(stdout);
+    SHMEM_RUNTIME_WORLD = joint_comm;
+    printf("Growth operation completed on PE[%d]\n", rank);
+    fflush(stdout);
+
     return 0;
 }
 
 int
-shmem_runtime_shrink(int newSize) {
+shmem_runtime_shrink(int new_size) {
     printf("Doing a shrink operation\n");
     MPI_Group world_group, new_group, pool_group;
     MPI_Comm new_comm = MPI_COMM_NULL, pool_comm = MPI_COMM_NULL;
@@ -127,12 +162,12 @@ shmem_runtime_shrink(int newSize) {
 
     printf("rank: %d, size: %d\n", rank, world_size);
     fflush(stdout);
-    ranks = (int*)malloc(newSize * sizeof(int));
+    ranks = (int*)malloc(new_size * sizeof(int));
     if (ranks == NULL) {
         return -1;
     }
 
-    for (i = 0; i < newSize; i++) {
+    for (i = 0; i < new_size; i++) {
         ranks[i] = i;
     }
 
@@ -142,16 +177,16 @@ shmem_runtime_shrink(int newSize) {
         fflush(stdout);
         return 2;
     }
-    // Create a new group from the existing group with only the first 'newSize' ranks
-    ret = MPI_Group_incl(world_group, newSize, ranks, &new_group);
+    // Create a new group from the existing group with only the first 'new_size' ranks
+    ret = MPI_Group_incl(world_group, new_size, ranks, &new_group);
     printf("MPI_Group_incl: %d\n", ret);
     fflush(stdout);
 
-    ret = MPI_Group_excl(world_group, newSize, ranks, &pool_group);
+    ret = MPI_Group_excl(world_group, new_size, ranks, &pool_group);
     printf("MPI_Group_excl: %d\n", ret);
     fflush(stdout);
 
-    if (rank < newSize) {
+    if (rank < new_size) {
         ret = MPI_Comm_create(SHMEM_RUNTIME_WORLD, new_group, &new_comm);
     } else {
         // Create a new communicator for PEs not in the new group (SHMEM_RUNTIME_POOL)
@@ -169,12 +204,12 @@ shmem_runtime_shrink(int newSize) {
         fflush(stdout);
     }
 
-    if (rank < newSize && new_comm != MPI_COMM_NULL) {
+    if (rank < new_size && new_comm != MPI_COMM_NULL) {
         ret = MPI_Comm_free(&SHMEM_RUNTIME_WORLD);
         //printf("Replacing SHMEM_RUNTIME_WORLD with new comm\n");
         fflush(stdout);
         SHMEM_RUNTIME_WORLD = new_comm;
-    } else if (rank >= newSize && pool_comm != MPI_COMM_NULL) {
+    } else if (rank >= new_size && pool_comm != MPI_COMM_NULL) {
         // Update SHMEM_RUNTIME_POOL for PEs not in the new group
         MPI_Comm_disconnect(&SHMEM_RUNTIME_WORLD);
         printf("Disconnected and finalizing for PE[%d]\n", rank);
