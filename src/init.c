@@ -198,6 +198,14 @@ shmem_internal_shrink(int new_size)
 }
 
 int
+shmem_internal_grow(int new_size)
+{
+    int ret;
+    ret = shmem_runtime_grow(new_size);
+    return ret; 
+}
+
+int
 shmem_internal_heap_preinit(int tl_requested, int *tl_provided)
 {
     int ret;

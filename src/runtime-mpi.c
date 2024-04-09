@@ -109,6 +109,13 @@ shmem_runtime_init(int enable_node_ranks)
 }
 
 int
+shmem_runtime_grow(int newSize) {
+    printf("Grow operation\n");
+    fflush(stdout);
+    return 0;
+}
+
+int
 shmem_runtime_shrink(int newSize) {
     printf("Doing a shrink operation\n");
     MPI_Group world_group, new_group, pool_group;

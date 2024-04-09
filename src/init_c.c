@@ -87,6 +87,12 @@ shmem_shrink(int new_size)
     return shmem_internal_shrink(new_size);
 }
 
+int SHMEM_FUNCTION_ATTRIBUTES
+shmem_grow(int new_size)
+{
+    return shmem_internal_grow(new_size);
+}
+
 void SHMEM_FUNCTION_ATTRIBUTES
 shmemx_heap_preinit(void)
 {
