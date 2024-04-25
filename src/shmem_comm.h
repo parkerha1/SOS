@@ -60,12 +60,21 @@ void
 shmem_internal_put_scalar(shmem_ctx_t ctx, void *target, const void *source, size_t len, int pe)
 {
     shmem_internal_assert(len > 0);
-
+    printf("internal_put_scalar 1, PE:%d\n", shmem_internal_my_pe);
+    fflush(stdout);
     if (shmem_shr_transport_use_write(ctx, target, source, len, pe)) {
+        printf("internal_put_scalar 2\n");
+        fflush(stdout);
         shmem_shr_transport_put_scalar(ctx, target, source, len, pe);
+        printf("internal_put_scalar 3\n");
+        fflush(stdout);
     } else {
 #ifndef DISABLE_OFI_INJECT
+        printf("internal_put_scalar 4\n");
+        fflush(stdout);
         shmem_transport_put_scalar((shmem_transport_ctx_t *)ctx, target, source, len, pe);
+        printf("internal_put_scalar 5\n");
+        fflush(stdout);
 #else
         long completion = 0;
         shmem_transport_put_nb((shmem_transport_ctx_t *)ctx, target, source, len, pe, &completion);

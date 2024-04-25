@@ -4605,7 +4605,8 @@ void* dlmalloc(size_t bytes) {
 #if USE_LOCKS
   ensure_initialization(); /* initialize in sys_alloc if not using locks */
 #endif
-
+  printf("DLMALLOC 1\n");
+  fflush(stdout);
   if (!PREACTION(gm)) {
     void* mem;
     size_t nb;
@@ -4615,8 +4616,11 @@ void* dlmalloc(size_t bytes) {
       nb = (bytes < MIN_REQUEST)? MIN_CHUNK_SIZE : pad_request(bytes);
       idx = small_index(nb);
       smallbits = gm->smallmap >> idx;
-
+      printf("DLMALLOC 1\n");
+      fflush(stdout);
       if ((smallbits & 0x3U) != 0) { /* Remainderless fit to a smallbin. */
+        printf("DLMALLOC 2\n");
+        fflush(stdout);
         mchunkptr b, p;
         idx += ~smallbits & 1;       /* Uses next bin if idx empty */
         b = smallbin_at(gm, idx);
@@ -4626,11 +4630,15 @@ void* dlmalloc(size_t bytes) {
         set_inuse_and_pinuse(gm, p, small_index2size(idx));
         mem = chunk2mem(p);
         check_malloced_chunk(gm, mem, nb);
+        printf("DLMALLOC 3\n");
+        fflush(stdout);
         goto postaction;
       }
 
       else if (nb > gm->dvsize) {
         if (smallbits != 0) { /* Use chunk in next nonempty smallbin */
+          printf("DLMALLOC 4\n");
+          fflush(stdout);
           mchunkptr b, p, r;
           size_t rsize;
           bindex_t i;
@@ -4653,6 +4661,8 @@ void* dlmalloc(size_t bytes) {
           }
           mem = chunk2mem(p);
           check_malloced_chunk(gm, mem, nb);
+          printf("DLMALLOC 5\n");
+          fflush(stdout);
           goto postaction;
         }
 
@@ -4671,7 +4681,8 @@ void* dlmalloc(size_t bytes) {
         goto postaction;
       }
     }
-
+    printf("DLMALLOC 6\n");
+    fflush(stdout);
     if (nb <= gm->dvsize) {
       size_t rsize = gm->dvsize - nb;
       mchunkptr p = gm->dv;
@@ -4687,12 +4698,16 @@ void* dlmalloc(size_t bytes) {
         gm->dv = 0;
         set_inuse_and_pinuse(gm, p, dvs);
       }
+      printf("DLMALLOC 7\n");
+      fflush(stdout);
       mem = chunk2mem(p);
       check_malloced_chunk(gm, mem, nb);
       goto postaction;
     }
 
     else if (nb < gm->topsize) { /* Split top */
+      printf("DLMALLOC 8\n");
+      fflush(stdout);
       size_t rsize = gm->topsize -= nb;
       mchunkptr p = gm->top;
       mchunkptr r = gm->top = chunk_plus_offset(p, nb);
@@ -4701,13 +4716,21 @@ void* dlmalloc(size_t bytes) {
       mem = chunk2mem(p);
       check_top_chunk(gm, gm->top);
       check_malloced_chunk(gm, mem, nb);
+      printf("DLMALLOC 9\n");
+      fflush(stdout);
       goto postaction;
     }
-
+    printf("DLMALLOC 10\n");
+    fflush(stdout);
     mem = sys_alloc(gm, nb);
-
+    printf("DLMALLOC 11\n");
+    fflush(stdout);
   postaction:
+    printf("DLMALLOC 12\n");
+    fflush(stdout);
     POSTACTION(gm);
+    printf("DLMALLOC 13\n");
+    fflush(stdout);
     return mem;
   }
 

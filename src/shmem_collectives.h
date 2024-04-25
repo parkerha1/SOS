@@ -54,12 +54,17 @@ shmem_internal_sync(int PE_start, int PE_stride, int PE_size, long *pSync)
     }
 
     if (PE_size == 1) return;
-
+    printf("Internal sync: PE_start=%d, PE_stride=%d, PE_size=%d\n", PE_start, PE_stride, PE_size);
+    fflush(stdout);
     switch (shmem_internal_barrier_type) {
     case AUTO:
         if (PE_size < shmem_internal_params.COLL_CROSSOVER) {
+            printf("sync linear\n");
+            fflush(stdout);
             shmem_internal_sync_linear(PE_start, PE_stride, PE_size, pSync);
         } else {
+            printf("sync tree\n");
+            fflush(stdout);
             shmem_internal_sync_tree(PE_start, PE_stride, PE_size, pSync);
         }
         break;
@@ -104,8 +109,14 @@ static inline
 void
 shmem_internal_barrier_all(void)
 {
+    printf("SHMEM_INTERNAL_BARRIER 1\n");
+    fflush(stdout);
     shmem_internal_quiet(SHMEM_CTX_DEFAULT);
+    printf("SHMEM_INTERNAL_BARRIER 2\n");
+    fflush(stdout);
     shmem_internal_sync(0, 1, shmem_internal_num_pes, shmem_internal_barrier_all_psync);
+    printf("SHMEM_INTERNAL_BARRIER 3\n");
+    fflush(stdout);
 }
 
 

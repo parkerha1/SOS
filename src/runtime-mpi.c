@@ -111,7 +111,7 @@ shmem_runtime_init(int enable_node_ranks)
 int
 shmem_runtime_grow(int new_size, int is_child) {
     int rank, world_size, ret, i;
-    MPI_Comm joint_comm; // New communicator including all initial and spawned processes
+    MPI_Comm joint_comm, new_world; // New communicator including all initial and spawned processes
     char *worker_program = "./test";
     MPI_Comm_rank(SHMEM_RUNTIME_WORLD, &rank);
     MPI_Comm_size(SHMEM_RUNTIME_WORLD, &world_size);
@@ -129,6 +129,7 @@ shmem_runtime_grow(int new_size, int is_child) {
                 fflush(stdout);
                 return -1;
             }
+            MPI_Intercomm_merge(joint_comm, 0, &new_world);
         } else {
             printf("New size not greater than current size, no processes spawned\n");
             fflush(stdout);
@@ -136,14 +137,18 @@ shmem_runtime_grow(int new_size, int is_child) {
         }
     } else {
         MPI_Comm_get_parent(&joint_comm);
+        MPI_Intercomm_merge(joint_comm, 1, &new_world);
     }
     // At this point, `joint_comm` includes both old and new processes
-    MPI_Barrier(joint_comm); 
-
-    ret = MPI_Comm_free(&SHMEM_RUNTIME_WORLD);
+    MPI_Barrier(new_world); 
+    MPI_Comm_size(new_world, &size);
+    printf("new world comm size: %d\n", size);
+    fflush(stdout);
+    MPI_Comm_free(&SHMEM_RUNTIME_WORLD);
+    MPI_Comm_free(&joint_comm);
     printf("Replacing SHMEM_RUNTIME_WORLD with new comm\n");
     fflush(stdout);
-    SHMEM_RUNTIME_WORLD = joint_comm;
+    SHMEM_RUNTIME_WORLD = new_world;
     printf("Growth operation completed on PE[%d]\n", rank);
     fflush(stdout);
 

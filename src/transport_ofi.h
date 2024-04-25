@@ -571,7 +571,9 @@ void shmem_transport_put_scalar(shmem_transport_ctx_t* ctx, void *target, const
     SHMEM_TRANSPORT_OFI_CNTR_INC(&ctx->pending_put_cntr);
 
     do {
-
+        printf("Calling fi_inject_write with source=%p, len=%zu, dest_pe=%" PRIu64 ", dest_addr=%" PRIu64 ", key=%" PRIu64 "\n", 
+               source, len, dst, (uint64_t) addr, key);
+        fflush(stdout);
         ret = fi_inject_write(ctx->ep,
                               source,
                               len,

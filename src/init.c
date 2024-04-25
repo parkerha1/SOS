@@ -203,6 +203,9 @@ shmem_internal_grow(int new_size, int is_child)
     int ret;
     ret = shmem_runtime_grow(new_size, is_child);
     if (ret == 0) {
+        printf("Reassigning shmem_internal_num_pes to %d\n", shmem_runtime_get_size());
+        fflush(stdout);
+        shmem_internal_my_pe = shmem_runtime_get_rank();
         shmem_internal_num_pes = shmem_runtime_get_size();
     }
     return ret; 
