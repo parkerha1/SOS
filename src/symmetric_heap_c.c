@@ -294,9 +294,7 @@ shmem_malloc(size_t size)
     SHMEM_MUTEX_LOCK(shmem_internal_mutex_alloc);
     ret = dlmalloc(size);
     SHMEM_MUTEX_UNLOCK(shmem_internal_mutex_alloc);
-
     shmem_internal_barrier_all();
-
     return ret;
 }
 

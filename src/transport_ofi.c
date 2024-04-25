@@ -1819,6 +1819,38 @@ int shmem_transport_startup(void)
     return 0;
 }
 
+int shmem_transport_reinit() {
+    int ret;
+    /* Initialize transport devices */
+    ret = shmem_transport_init();
+    if (0 != ret) {
+        RETURN_ERROR_MSG("Transport init failed (%d)\n", ret);
+        goto cleanup_postinit;
+    }
+
+    ret = shmem_shr_transport_init();
+    if (0 != ret) {
+        RETURN_ERROR_MSG("Shared memory transport init failed (%d)\n", ret);
+        goto cleanup_postinit;
+    }
+
+    /* exchange information */
+    ret = shmem_runtime_exchange();
+    if (0 != ret) {
+        RETURN_ERROR_MSG("Runtime exchange failed (%d)\n", ret);
+        goto cleanup_postinit;
+    }
+
+    /* finish transport initialization after information sharing. */
+    ret = shmem_transport_startup();
+    if (0 != ret) {
+        RETURN_ERROR_MSG("Transport startup failed (%d)\n", ret);
+        goto cleanup_postinit;
+    }
+cleanup_postinit:
+    return ret;
+}
+
 int shmem_transport_ctx_create(struct shmem_internal_team_t *team, long options, shmem_transport_ctx_t **ctx)
 {
     int ret;

@@ -350,6 +350,7 @@ void shmem_transport_ctx_destroy(shmem_transport_ctx_t *ctx);
 
 int shmem_transport_init(void);
 int shmem_transport_startup(void);
+int shmem_transport_reinit(void);
 int shmem_transport_fini(void);
 
 extern size_t SHMEM_Dtsize[FI_DATATYPE_LAST];
@@ -571,7 +572,6 @@ void shmem_transport_put_scalar(shmem_transport_ctx_t* ctx, void *target, const
     SHMEM_TRANSPORT_OFI_CNTR_INC(&ctx->pending_put_cntr);
 
     do {
-
         ret = fi_inject_write(ctx->ep,
                               source,
                               len,

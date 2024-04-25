@@ -4605,7 +4605,6 @@ void* dlmalloc(size_t bytes) {
 #if USE_LOCKS
   ensure_initialization(); /* initialize in sys_alloc if not using locks */
 #endif
-
   if (!PREACTION(gm)) {
     void* mem;
     size_t nb;
@@ -4615,7 +4614,6 @@ void* dlmalloc(size_t bytes) {
       nb = (bytes < MIN_REQUEST)? MIN_CHUNK_SIZE : pad_request(bytes);
       idx = small_index(nb);
       smallbits = gm->smallmap >> idx;
-
       if ((smallbits & 0x3U) != 0) { /* Remainderless fit to a smallbin. */
         mchunkptr b, p;
         idx += ~smallbits & 1;       /* Uses next bin if idx empty */
@@ -4671,7 +4669,6 @@ void* dlmalloc(size_t bytes) {
         goto postaction;
       }
     }
-
     if (nb <= gm->dvsize) {
       size_t rsize = gm->dvsize - nb;
       mchunkptr p = gm->dv;
@@ -4703,9 +4700,7 @@ void* dlmalloc(size_t bytes) {
       check_malloced_chunk(gm, mem, nb);
       goto postaction;
     }
-
     mem = sys_alloc(gm, nb);
-
   postaction:
     POSTACTION(gm);
     return mem;
