@@ -54,7 +54,6 @@ shmem_internal_sync(int PE_start, int PE_stride, int PE_size, long *pSync)
     }
 
     if (PE_size == 1) return;
-
     switch (shmem_internal_barrier_type) {
     case AUTO:
         if (PE_size < shmem_internal_params.COLL_CROSSOVER) {
