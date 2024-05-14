@@ -1853,6 +1853,14 @@ int shmem_transport_reinit() {
         RETURN_ERROR_MSG("Initialization of collectives failed (%d)\n", ret);
         goto cleanup_postinit;
     }
+
+    ret = shmem_internal_team_init();
+    if (ret != 0) {
+        RETURN_ERROR_MSG("Initialization of teams failed (%d)\n", ret);
+        goto cleanup_postinit;
+    }
+
+
 cleanup_postinit:
     return ret;
 }
