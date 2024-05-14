@@ -294,11 +294,7 @@ shmem_malloc(size_t size)
     SHMEM_MUTEX_LOCK(shmem_internal_mutex_alloc);
     ret = dlmalloc(size);
     SHMEM_MUTEX_UNLOCK(shmem_internal_mutex_alloc);
-    printf("SHMEM_MALLOC 1\n");
-    fflush(stdout);
     shmem_internal_barrier_all();
-    printf("SHMEM_MALLOC 2\n");
-    fflush(stdout);
     return ret;
 }
 

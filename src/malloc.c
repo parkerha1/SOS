@@ -4605,8 +4605,6 @@ void* dlmalloc(size_t bytes) {
 #if USE_LOCKS
   ensure_initialization(); /* initialize in sys_alloc if not using locks */
 #endif
-  printf("DLMALLOC 1\n");
-  fflush(stdout);
   if (!PREACTION(gm)) {
     void* mem;
     size_t nb;
@@ -4616,8 +4614,6 @@ void* dlmalloc(size_t bytes) {
       nb = (bytes < MIN_REQUEST)? MIN_CHUNK_SIZE : pad_request(bytes);
       idx = small_index(nb);
       smallbits = gm->smallmap >> idx;
-      printf("DLMALLOC 1\n");
-      fflush(stdout);
       if ((smallbits & 0x3U) != 0) { /* Remainderless fit to a smallbin. */
         printf("DLMALLOC 2\n");
         fflush(stdout);
@@ -4681,8 +4677,6 @@ void* dlmalloc(size_t bytes) {
         goto postaction;
       }
     }
-    printf("DLMALLOC 6\n");
-    fflush(stdout);
     if (nb <= gm->dvsize) {
       size_t rsize = gm->dvsize - nb;
       mchunkptr p = gm->dv;
@@ -4720,11 +4714,7 @@ void* dlmalloc(size_t bytes) {
       fflush(stdout);
       goto postaction;
     }
-    printf("DLMALLOC 10\n");
-    fflush(stdout);
     mem = sys_alloc(gm, nb);
-    printf("DLMALLOC 11\n");
-    fflush(stdout);
   postaction:
     printf("DLMALLOC 12\n");
     fflush(stdout);

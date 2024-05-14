@@ -207,6 +207,8 @@ shmem_internal_grow(int new_size, int is_child)
         fflush(stdout);
         shmem_internal_my_pe = shmem_runtime_get_rank();
         shmem_internal_num_pes = shmem_runtime_get_size();
+
+        ret = shmem_transport_reinit();
     }
     return ret; 
 }
@@ -577,16 +579,10 @@ int
 shmem_internal_init(int tl_requested, int *tl_provided)
 {
     int ret;
-    printf("Going into preinit\n");
-    fflush(stdout);
     ret = shmem_internal_heap_preinit(tl_requested, tl_provided);
-    printf("Made it out of preinit with '%d'\n", ret);
-    fflush(stdout);
     if (ret) goto cleanup;
 
     ret = shmem_internal_heap_postinit();
-    printf("Made it out of post init with '%d'\n", ret);
-    fflush(stdout);
     if (ret) goto cleanup;
 
     return 0;

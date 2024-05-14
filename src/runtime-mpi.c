@@ -115,9 +115,7 @@ shmem_runtime_grow(int new_size, int is_child) {
     char *worker_program = "./test";
     MPI_Comm_rank(SHMEM_RUNTIME_WORLD, &rank);
     MPI_Comm_size(SHMEM_RUNTIME_WORLD, &world_size);
-    printf("rank: %d, attempting to grow to size: %d, child=%d\n", rank, new_size, is_child);
 
-    fflush(stdout);
     if(!is_child) {
         char *mpi_argv[] = {"1", NULL};
         int spawn_count = new_size - world_size;
@@ -142,22 +140,16 @@ shmem_runtime_grow(int new_size, int is_child) {
     // At this point, `joint_comm` includes both old and new processes
     MPI_Barrier(new_world); 
     MPI_Comm_size(new_world, &size);
-    printf("new world comm size: %d\n", size);
-    fflush(stdout);
     MPI_Comm_free(&SHMEM_RUNTIME_WORLD);
     MPI_Comm_free(&joint_comm);
-    printf("Replacing SHMEM_RUNTIME_WORLD with new comm\n");
     fflush(stdout);
     SHMEM_RUNTIME_WORLD = new_world;
-    printf("Growth operation completed on PE[%d]\n", rank);
-    fflush(stdout);
 
     return 0;
 }
 
 int
 shmem_runtime_shrink(int new_size) {
-    printf("Doing a shrink operation\n");
     MPI_Group world_group, new_group, pool_group;
     MPI_Comm new_comm = MPI_COMM_NULL, pool_comm = MPI_COMM_NULL;
     int rank, *ranks, i, world_size, ret;
@@ -165,7 +157,6 @@ shmem_runtime_shrink(int new_size) {
     MPI_Comm_rank(SHMEM_RUNTIME_WORLD, &rank);
     MPI_Comm_size(SHMEM_RUNTIME_WORLD, &world_size);
 
-    printf("rank: %d, size: %d\n", rank, world_size);
     fflush(stdout);
     ranks = (int*)malloc(new_size * sizeof(int));
     if (ranks == NULL) {
@@ -184,12 +175,8 @@ shmem_runtime_shrink(int new_size) {
     }
     // Create a new group from the existing group with only the first 'new_size' ranks
     ret = MPI_Group_incl(world_group, new_size, ranks, &new_group);
-    printf("MPI_Group_incl: %d\n", ret);
-    fflush(stdout);
 
     ret = MPI_Group_excl(world_group, new_size, ranks, &pool_group);
-    printf("MPI_Group_excl: %d\n", ret);
-    fflush(stdout);
 
     if (rank < new_size) {
         ret = MPI_Comm_create(SHMEM_RUNTIME_WORLD, new_group, &new_comm);
@@ -204,10 +191,6 @@ shmem_runtime_shrink(int new_size) {
     }
 
     MPI_Barrier(SHMEM_RUNTIME_WORLD);
-    if (SHMEM_RUNTIME_WORLD != MPI_COMM_NULL) {
-        printf("MPI_Comm_free: %d - PE[%d]\n", ret, rank);
-        fflush(stdout);
-    }
 
     if (rank < new_size && new_comm != MPI_COMM_NULL) {
         ret = MPI_Comm_free(&SHMEM_RUNTIME_WORLD);
