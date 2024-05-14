@@ -107,14 +107,8 @@ static inline
 void
 shmem_internal_barrier_all(void)
 {
-    printf("SHMEM_INTERNAL_BARRIER 1\n");
-    fflush(stdout);
     shmem_internal_quiet(SHMEM_CTX_DEFAULT);
-    printf("SHMEM_INTERNAL_BARRIER 2\n");
-    fflush(stdout);
     shmem_internal_sync(0, 1, shmem_internal_num_pes, shmem_internal_barrier_all_psync);
-    printf("SHMEM_INTERNAL_BARRIER 3\n");
-    fflush(stdout);
 }
 
 

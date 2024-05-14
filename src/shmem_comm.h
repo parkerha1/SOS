@@ -35,8 +35,6 @@ void
 shmem_internal_put_nb(shmem_ctx_t ctx, void *target, const void *source, size_t len, int pe,
                       long *completion)
 {
-    printf("shmem_internal_put_nb\n");
-    fflush(stdout);
     if (len == 0)
         return;
 
@@ -61,22 +59,12 @@ static inline
 void
 shmem_internal_put_scalar(shmem_ctx_t ctx, void *target, const void *source, size_t len, int pe)
 {
-    printf("shmem_internal_put_scalar\n");
-    fflush(stdout);
     shmem_internal_assert(len > 0);
     if (shmem_shr_transport_use_write(ctx, target, source, len, pe)) {
-        printf("internal_put_scalar 2\n");
-        fflush(stdout);
         shmem_shr_transport_put_scalar(ctx, target, source, len, pe);
-        printf("internal_put_scalar 3\n");
-        fflush(stdout);
     } else {
 #ifndef DISABLE_OFI_INJECT
-        printf("internal_put_scalar 4\n");
-        fflush(stdout);
         shmem_transport_put_scalar((shmem_transport_ctx_t *)ctx, target, source, len, pe);
-        printf("internal_put_scalar 5\n");
-        fflush(stdout);
 #else
         long completion = 0;
         shmem_transport_put_nb((shmem_transport_ctx_t *)ctx, target, source, len, pe, &completion);
@@ -90,7 +78,6 @@ void
 shmem_internal_put_signal_nbi(shmem_ctx_t ctx, void *target, const void *source, size_t len,
                               uint64_t *sig_addr, uint64_t signal, int sig_op, int pe)
 {
-    printf("shmem_internal_put_signal_nbi\n");
     fflush(stdout);
     if (len == 0) {
         if (sig_op == SHMEM_SIGNAL_ADD)
@@ -113,8 +100,6 @@ static inline
 void
 shmem_internal_put_nbi(shmem_ctx_t ctx, void *target, const void *source, size_t len, int pe)
 {
-    printf("shmem_internal_put_nbi\n");
-    fflush(stdout);
     if (len == 0) return;
 
     if (shmem_shr_transport_use_write(ctx, target, source, len, pe)) {
@@ -130,8 +115,6 @@ void
 shmem_internal_put_ct_nb(shmemx_ct_t ct, void *target, const void *source, size_t len, int pe,
                       long *completion)
 {
-    printf("shmem_internal_put_ct_nb\n");
-    fflush(stdout);
     /* TODO: add shortcut for on-node-comms */
     shmem_transport_put_ct_nb((shmem_transport_ct_t *)
                               ct, target, source, len, pe, completion);

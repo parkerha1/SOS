@@ -4615,8 +4615,6 @@ void* dlmalloc(size_t bytes) {
       idx = small_index(nb);
       smallbits = gm->smallmap >> idx;
       if ((smallbits & 0x3U) != 0) { /* Remainderless fit to a smallbin. */
-        printf("DLMALLOC 2\n");
-        fflush(stdout);
         mchunkptr b, p;
         idx += ~smallbits & 1;       /* Uses next bin if idx empty */
         b = smallbin_at(gm, idx);
@@ -4626,15 +4624,11 @@ void* dlmalloc(size_t bytes) {
         set_inuse_and_pinuse(gm, p, small_index2size(idx));
         mem = chunk2mem(p);
         check_malloced_chunk(gm, mem, nb);
-        printf("DLMALLOC 3\n");
-        fflush(stdout);
         goto postaction;
       }
 
       else if (nb > gm->dvsize) {
         if (smallbits != 0) { /* Use chunk in next nonempty smallbin */
-          printf("DLMALLOC 4\n");
-          fflush(stdout);
           mchunkptr b, p, r;
           size_t rsize;
           bindex_t i;
@@ -4657,8 +4651,6 @@ void* dlmalloc(size_t bytes) {
           }
           mem = chunk2mem(p);
           check_malloced_chunk(gm, mem, nb);
-          printf("DLMALLOC 5\n");
-          fflush(stdout);
           goto postaction;
         }
 
@@ -4692,15 +4684,12 @@ void* dlmalloc(size_t bytes) {
         gm->dv = 0;
         set_inuse_and_pinuse(gm, p, dvs);
       }
-      printf("DLMALLOC 7\n");
-      fflush(stdout);
       mem = chunk2mem(p);
       check_malloced_chunk(gm, mem, nb);
       goto postaction;
     }
 
     else if (nb < gm->topsize) { /* Split top */
-      printf("DLMALLOC 8\n");
       fflush(stdout);
       size_t rsize = gm->topsize -= nb;
       mchunkptr p = gm->top;
@@ -4710,17 +4699,11 @@ void* dlmalloc(size_t bytes) {
       mem = chunk2mem(p);
       check_top_chunk(gm, gm->top);
       check_malloced_chunk(gm, mem, nb);
-      printf("DLMALLOC 9\n");
-      fflush(stdout);
       goto postaction;
     }
     mem = sys_alloc(gm, nb);
   postaction:
-    printf("DLMALLOC 12\n");
-    fflush(stdout);
     POSTACTION(gm);
-    printf("DLMALLOC 13\n");
-    fflush(stdout);
     return mem;
   }
 
