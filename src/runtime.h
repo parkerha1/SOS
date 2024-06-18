@@ -21,7 +21,7 @@
 
 int shmem_runtime_init(int enable_node_ranks);
 int shmem_runtime_shrink(int new_size);
-int shmem_runtime_grow(int new_size, int is_child);
+int shmem_runtime_grow(int new_size);
 int shmem_runtime_fini(void);
 void shmem_runtime_abort(int exit_code, const char msg[]) SHMEM_ATTRIBUTE_NORETURN ;
 

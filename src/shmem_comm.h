@@ -35,8 +35,6 @@ void
 shmem_internal_put_nb(shmem_ctx_t ctx, void *target, const void *source, size_t len, int pe,
                       long *completion)
 {
-    printf("shmem_internal_put_nb\n");
-    fflush(stdout);
     if (len == 0)
         return;
 
@@ -61,8 +59,6 @@ static inline
 void
 shmem_internal_put_scalar(shmem_ctx_t ctx, void *target, const void *source, size_t len, int pe)
 {
-    printf("shmem_internal_put_scalar\n");
-    fflush(stdout);
     shmem_internal_assert(len > 0);
     if (shmem_shr_transport_use_write(ctx, target, source, len, pe)) {
         shmem_shr_transport_put_scalar(ctx, target, source, len, pe);
