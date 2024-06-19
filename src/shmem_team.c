@@ -111,22 +111,31 @@ int shmem_internal_team_init(void)
         shmem_internal_team_shared.start         = shmem_internal_my_pe;
         shmem_internal_team_shared.stride        = 1;
         shmem_internal_team_shared.size          = 1;
-    } else { /* Search for shared-memory peer PEs while checking for a consistent stride */
+    } 
+    else 
+    { /* Search for shared-memory peer PEs while checking for a consistent stride */
         int start = -1, stride = -1, size = 0;
 
-        for (int pe = 0; pe < shmem_internal_num_pes; pe++) {
+        for (int pe = 0; pe < shmem_internal_num_pes; pe++) 
+        {
             void *ret_ptr = shmem_internal_ptr(shmem_internal_heap_base, pe);
             if (ret_ptr == NULL) continue;
 
             int ret = check_for_linear_stride(pe, &start, &stride, &size);
-            if (ret < 0) {
+            if (ret < 0) 
+            {
                 start = shmem_internal_my_pe;
                 stride = 1;
                 size = 1;
                 break;
             }
         }
-        shmem_internal_assertp(size > 0 && size <= shmem_runtime_get_node_size());
+
+        // bman
+        printf("[%d][%d] ==>BMAN: shmem_internal_team_init(): size=%d, shmem_runtime_get_node_size()=%d \n ", getpid(), shmem_internal_my_pe, size, shmem_runtime_get_node_size()); fflush(stdout);
+        //
+
+        shmem_internal_assertp(size > 0 && size <= shmem_runtime_get_node_size());          // <== bman: pop here on my simple app
 
         shmem_internal_team_shared.start = start;
         shmem_internal_team_shared.stride = (stride == -1) ? 1 : stride;

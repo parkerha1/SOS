@@ -123,7 +123,8 @@ void parse_env_var(char *env_var, char *mpi_argv[]) {
 }
 
 int
-shmem_runtime_grow(int new_size) {
+shmem_runtime_grow(int new_size) 
+{
     int rank, world_size, ret;
     MPI_Comm joint_comm, new_world; // New communicator including all initial and spawned processes
     char new_size_str[12];
@@ -131,13 +132,16 @@ shmem_runtime_grow(int new_size) {
     char *worker_program = shmem_internal_params.WORKER_PROGRAM;
     MPI_Comm_rank(SHMEM_RUNTIME_WORLD, &rank);
     MPI_Comm_size(SHMEM_RUNTIME_WORLD, &world_size);
-    printf("new_size %s\n", new_size_str);
+
+    printf("[%d] +shmem_runtime_grow(): new_size_str=%s, new_size=%d, shmem_internal_params.FAST_FORWARD = %d \n", getpid(), new_size_str, new_size, shmem_internal_params.FAST_FORWARD);
     fflush(stdout);
+
     if(!shmem_internal_params.FAST_FORWARD) {
         char *mpi_argv[5];
         char *env_args = shmem_internal_params.WORKER_ARGS;
-        printf("ENV ARGS: %s\n", env_args);
-        fflush(stdout);
+
+        printf("[%d] shmem_runtime_grow(): ENV ARGS: %s\n",  getpid(), env_args); fflush(stdout);
+
         if (env_args != NULL) {
             parse_env_var(env_args, mpi_argv);
         } else {
@@ -148,12 +152,17 @@ shmem_runtime_grow(int new_size) {
         // char *mpi_argv[] = {"10", "10", new_size_str, "child.log", NULL};
         MPI_Info info;
         MPI_Info_create(&info);
-        MPI_Info_set(info, "env", "SHMEM_FAST_FORWARD=1");
+        //MPI_Info_set(info, "env", "SHMEM_FAST_FORWARD=1");
+        MPI_Info_set(info, "PMIX_ENVAR", "SHMEM_FAST_FORWARD=1");  // bman
 
+        // bman: so if I say 3 new processes, we get 2?  So the param is really TOTAL PEs?  Yep.  Seems a bit odd, but ok.
         int spawn_count = new_size - world_size;
-        printf("new_size: %d, world_size: %d\n", new_size, world_size);
+        printf("[%d] shmem_runtime_grow(): spawn count = %d == new_size(%d) - world_size(%d)\n", getpid(), spawn_count, new_size, world_size);
         fflush(stdout);
-        if (spawn_count > 0) {
+   
+        if (spawn_count > 0) 
+        {
+            printf("[%d] shmem_runtime_grow(): **Calling MPI_Comm_spawn(env=SHMEM_FAST_FORWARD=1, spawn_count=%d) \n",  getpid(), spawn_count); fflush(stdout);
             ret = MPI_Comm_spawn(worker_program, mpi_argv, spawn_count, 
                                     info, 0, SHMEM_RUNTIME_WORLD, &joint_comm, MPI_ERRCODES_IGNORE);
             if (ret != MPI_SUCCESS) {
@@ -162,12 +171,20 @@ shmem_runtime_grow(int new_size) {
                 return -1;
             }
             MPI_Intercomm_merge(joint_comm, 0, &new_world);
-        } else {
-            printf("New size not greater than current size, no processes spawned\n");
+        } 
+        else 
+        {
+            printf("[%d] WARN: New size not greater than current size, no processes spawned! \n",  getpid());
             fflush(stdout);
             return 0; 
         }
-    } else {
+    } 
+    else 
+    {
+        // bman
+        printf("[%d] shmem_runtime_grow(): I'M NOT DOING THE SPAWN - I'M A LITTLE BITCH. \n", getpid()); fflush(stdout);
+        //
+
         ret = MPI_Comm_get_parent(&joint_comm);
         if (ret != MPI_SUCCESS) {
             printf("Error getting parent comm\n");
@@ -188,9 +205,12 @@ shmem_runtime_grow(int new_size) {
     MPI_Comm_free(&SHMEM_RUNTIME_WORLD);
     MPI_Comm_free(&joint_comm);
     fflush(stdout);
+  
     SHMEM_RUNTIME_WORLD = new_world;
-    printf("Finished grow PE[%d]\n", shmem_my_pe());
+  
+    printf("[%d][%d] -shmem_runtime_grow(): Finished grow PE[%d]. numpes = %d \n",  getpid(), shmem_my_pe(), shmem_my_pe(), shmem_n_pes());
     fflush(stdout);
+  
     return 0;
 }
 
@@ -215,7 +235,7 @@ shmem_runtime_shrink(int new_size) {
 
     // Get the group of the existing communicator
     if (MPI_SUCCESS != MPI_Comm_group(SHMEM_RUNTIME_WORLD, &world_group)) {
-        printf("MPI_Comm_group:\n"); 
+        printf("ERROR: MPI_Comm_group:\n"); 
         fflush(stdout);
         return 2;
     }
@@ -230,7 +250,7 @@ shmem_runtime_shrink(int new_size) {
         // Create a new communicator for PEs not in the new group (SHMEM_RUNTIME_POOL)
         ret = MPI_Comm_create(SHMEM_RUNTIME_WORLD, pool_group, &pool_comm);
     }
-    printf("MPI_Comm_create: %d - PE[%d]\n", ret, rank);
+    printf("[%d][%d] MPI_Comm_create: %d - PE[%d]\n",  getpid(), shmem_my_pe(), ret, rank);
     fflush(stdout);
     if (MPI_SUCCESS != ret) {
         return ret;
@@ -246,10 +266,10 @@ shmem_runtime_shrink(int new_size) {
     } else if (rank >= new_size && pool_comm != MPI_COMM_NULL) {
         // Update SHMEM_RUNTIME_POOL for PEs not in the new group
         MPI_Comm_disconnect(&SHMEM_RUNTIME_WORLD);
-        printf("Disconnected and finalizing for PE[%d]\n", rank);
+        printf("[%d][rank=%d] Disconnected and finalizing for PE[%d]\n",  getpid(), rank,rank);
         fflush(stdout);
         MPI_Finalize(); // This call will terminate the MPI environment for these processes
-        printf("Finalized for PE[%d]\n", rank);
+        printf("[%d][rank=%d] Finalized for PE[%d]\n",  getpid(), rank,rank);
         fflush(stdout);
         return -1; // Ensure a clean exit after MPI_Finalize
     }
@@ -259,7 +279,7 @@ shmem_runtime_shrink(int new_size) {
     MPI_Group_free(&pool_group);
 
     free(ranks);
-    printf("Made it to the end of shrink on PE[%d]\n", rank);
+    printf("[%d][%d]!!Made it to the end of shrink on PE[%d]\n",  getpid(), rank,rank);
     fflush(stdout);
     return 0; 
 }
@@ -348,6 +368,9 @@ shmem_runtime_get_node_rank(int pe)
 int
 shmem_runtime_get_node_size(void)
 {
+    // bman
+    printf("[%d] +shmem_runtime_get_node_size(): size = %d, node_size = %d \n", getpid(), size, node_size); fflush(stdout);
+
     if (size == 1) {
         return 1;
     }
