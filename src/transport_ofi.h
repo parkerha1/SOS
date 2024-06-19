@@ -484,9 +484,14 @@ void shmem_transport_put_quiet(shmem_transport_ctx_t* ctx)
 static inline
 int shmem_transport_quiet(shmem_transport_ctx_t* ctx)
 {
-
+    printf("shmem_transport_quiet 0 PE[%d]\n", shmem_my_pe());
+    fflush(stdout);
     shmem_transport_put_quiet(ctx);
+    printf("shmem_transport_quiet 1 PE[%d]\n", shmem_my_pe());
+    fflush(stdout);
     shmem_transport_get_wait(ctx);
+    printf("shmem_transport_quiet 2 PE[%d]\n", shmem_my_pe());
+    fflush(stdout);
 
     return 0;
 }
@@ -907,17 +912,21 @@ void shmem_transport_get_wait(shmem_transport_ctx_t* ctx)
      */
     uint64_t success, fail, cnt, cnt_new;
     long poll_count = 0;
-
+    printf("shmem_transport_get_wait 0 PE[%d]\n", shmem_my_pe());
+    fflush(stdout);
     SHMEM_TRANSPORT_OFI_CTX_LOCK(ctx);
 
     while (poll_count < shmem_transport_ofi_get_poll_limit ||
            shmem_transport_ofi_get_poll_limit < 0) {
+        printf("shmem_transport_get_wait 1\n");
+        fflush(stdout);
         success = fi_cntr_read(ctx->get_cntr);
         fail = fi_cntr_readerr(ctx->get_cntr);
         cnt = SHMEM_TRANSPORT_OFI_CNTR_READ(&ctx->pending_get_cntr);
 
         shmem_transport_probe();
-
+        printf("shmem_transport_get_wait 2\n");
+        fflush(stdout);
         if (success < cnt && fail == 0) {
             SHMEM_TRANSPORT_OFI_CTX_UNLOCK(ctx);
             SPINLOCK_BODY();
@@ -928,18 +937,31 @@ void shmem_transport_get_wait(shmem_transport_ctx_t* ctx)
             SHMEM_TRANSPORT_OFI_CTX_UNLOCK(ctx);
             return;
         }
+        printf("shmem_transport_get_wait 3\n");
+        fflush(stdout);
         poll_count++;
     }
     cnt_new = SHMEM_TRANSPORT_OFI_CNTR_READ(&ctx->pending_get_cntr);
     do {
+        printf("shmem_transport_get_wait 4 PE[%d]\n", shmem_my_pe());
+        fflush(stdout);
         cnt = cnt_new;
         ssize_t ret = fi_cntr_wait(ctx->get_cntr, cnt, -1);
+        printf("shmem_transport_get_wait 5 PE[%d]\n", shmem_my_pe());
+        fflush(stdout);
         cnt_new = SHMEM_TRANSPORT_OFI_CNTR_READ(&ctx->pending_get_cntr);
+        printf("shmem_transport_get_wait 6 PE[%d]\n", shmem_my_pe());
+        fflush(stdout);
         OFI_CTX_CHECK_ERROR(ctx, ret);
     } while (cnt < cnt_new);
+    printf("shmem_transport_get_wait 7 PE[%d]\n", shmem_my_pe());
+    fflush(stdout);
     shmem_internal_assert(cnt == cnt_new);
-
+    printf("shmem_transport_get_wait 8 PE[%d]\n", shmem_my_pe());
+    fflush(stdout);
     SHMEM_TRANSPORT_OFI_CTX_UNLOCK(ctx);
+    printf("shmem_transport_get_wait 9 PE[%d]\n", shmem_my_pe());
+    fflush(stdout);
 }
 
 

@@ -108,20 +108,54 @@ shmem_runtime_init(int enable_node_ranks)
     return 0;
 }
 
+
+void parse_env_var(char *env_var, char *mpi_argv[]) {
+    char *token;
+    int index = 0;
+    int MAX_ARGV_SIZE = 25;
+    token = strtok(env_var, " ");
+    while (token != NULL && index < MAX_ARGV_SIZE - 1) {
+        mpi_argv[index] = strdup(token);
+        token = strtok(NULL, " ");
+        index++;
+    }
+    mpi_argv[index] = NULL;
+}
+
 int
-shmem_runtime_grow(int new_size, int is_child) {
-    int rank, world_size, ret, i;
+shmem_runtime_grow(int new_size) {
+    int rank, world_size, ret;
     MPI_Comm joint_comm, new_world; // New communicator including all initial and spawned processes
-    char *worker_program = "./test";
+    char new_size_str[12];
+    sprintf(new_size_str, "%d", new_size);
+    char *worker_program = shmem_internal_params.WORKER_PROGRAM;
     MPI_Comm_rank(SHMEM_RUNTIME_WORLD, &rank);
     MPI_Comm_size(SHMEM_RUNTIME_WORLD, &world_size);
+    printf("new_size %s\n", new_size_str);
+    fflush(stdout);
+    if(!shmem_internal_params.FAST_FORWARD) {
+        char *mpi_argv[5];
+        char *env_args = shmem_internal_params.WORKER_ARGS;
+        printf("ENV ARGS: %s\n", env_args);
+        fflush(stdout);
+        if (env_args != NULL) {
+            parse_env_var(env_args, mpi_argv);
+        } else {
+            printf("Error: WORKER_ARGS environment variable not set\n");
+            return -1;
+        }
 
-    if(!is_child) {
-        char *mpi_argv[] = {"1", NULL};
+        // char *mpi_argv[] = {"10", "10", new_size_str, "child.log", NULL};
+        MPI_Info info;
+        MPI_Info_create(&info);
+        MPI_Info_set(info, "env", "SHMEM_FAST_FORWARD=1");
+
         int spawn_count = new_size - world_size;
+        printf("new_size: %d, world_size: %d\n", new_size, world_size);
+        fflush(stdout);
         if (spawn_count > 0) {
             ret = MPI_Comm_spawn(worker_program, mpi_argv, spawn_count, 
-                                    MPI_INFO_NULL, 0, SHMEM_RUNTIME_WORLD, &joint_comm, MPI_ERRCODES_IGNORE);
+                                    info, 0, SHMEM_RUNTIME_WORLD, &joint_comm, MPI_ERRCODES_IGNORE);
             if (ret != MPI_SUCCESS) {
                 printf("Error spawning new processes\n");
                 fflush(stdout);
@@ -134,8 +168,19 @@ shmem_runtime_grow(int new_size, int is_child) {
             return 0; 
         }
     } else {
-        MPI_Comm_get_parent(&joint_comm);
-        MPI_Intercomm_merge(joint_comm, 1, &new_world);
+        ret = MPI_Comm_get_parent(&joint_comm);
+        if (ret != MPI_SUCCESS) {
+            printf("Error getting parent comm\n");
+            fflush(stdout);
+            return -1;
+        }
+        ret = MPI_Intercomm_merge(joint_comm, 1, &new_world);
+        if (ret != MPI_SUCCESS) {
+            printf("Error merging the intercomms\n");
+            fflush(stdout);
+            return -1;
+        }
+        shmem_internal_params.FAST_FORWARD = 0;
     }
     // At this point, `joint_comm` includes both old and new processes
     MPI_Barrier(new_world); 
@@ -144,7 +189,8 @@ shmem_runtime_grow(int new_size, int is_child) {
     MPI_Comm_free(&joint_comm);
     fflush(stdout);
     SHMEM_RUNTIME_WORLD = new_world;
-
+    printf("Finished grow PE[%d]\n", shmem_my_pe());
+    fflush(stdout);
     return 0;
 }
 

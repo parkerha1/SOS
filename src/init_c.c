@@ -88,9 +88,9 @@ shmem_shrink(int new_size)
 }
 
 int SHMEM_FUNCTION_ATTRIBUTES
-shmem_grow(int new_size, int is_child)
+shmem_grow(int new_size, elastic_callback_t cb)
 {
-    return shmem_internal_grow(new_size, is_child);
+    return shmem_internal_grow(new_size, cb);
 }
 
 void SHMEM_FUNCTION_ATTRIBUTES

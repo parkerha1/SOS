@@ -467,7 +467,7 @@ extern shmem_internal_mutex_t shmem_internal_mutex_rand_r;
 void shmem_internal_start_pes(int npes);
 int  shmem_internal_init(int tl_requested, int *tl_provided);
 int  shmem_internal_shrink(int new_size);
-int  shmem_internal_grow(int new_size, int is_child);
+int  shmem_internal_grow(int new_size, elastic_callback_t cb);
 int  shmem_internal_heap_preinit(int tl_requested, int *tl_provided);
 int  shmem_internal_heap_postinit(void);
 void shmem_internal_finalize(void);

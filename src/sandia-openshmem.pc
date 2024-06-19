@@ -10,7 +10,7 @@ Name: sandia-openshmem
 Description: Sandia OpenSHMEM
 URL: https://github.com/Sandia-OpenSHMEM/SOS
 Version: 1.5.2
-Libs: -L${libdir}  -L/export/share/opt/libfabric/1.15.0/lib     -Wl,-rpath -Wl,/export/share/opt/libfabric/1.15.0/lib -Wl,-rpath -Wl,${exec_prefix}/lib -lsma  
+Libs: -L${libdir}  -L/opt/cray/libfabric/1.15.2.0/lib64     -Wl,-rpath -Wl,/opt/cray/libfabric/1.15.2.0/lib64 -Wl,-rpath -Wl,${exec_prefix}/lib -lsma  
 Cflags: -I${includedir}
 
 cxxflags=-I${includedir}

@@ -48,18 +48,29 @@ static inline
 void
 shmem_internal_sync(int PE_start, int PE_stride, int PE_size, long *pSync)
 {
+    printf("shmem_internal_sync start PE [%d]\n", shmem_my_pe());
+    fflush(stdout);
     if (shmem_internal_params.BARRIERS_FLUSH) {
         fflush(stdout);
         fflush(stderr);
     }
 
     if (PE_size == 1) return;
+    if (shmem_internal_params.FAST_FORWARD) {
+        printf("Skipped sync from FF\n");
+        fflush(stdout);
+        return;
+    }
+    printf("shmem_internal_sync 2 PE [%d]\n", shmem_my_pe());
+    fflush(stdout);
     switch (shmem_internal_barrier_type) {
     case AUTO:
         if (PE_size < shmem_internal_params.COLL_CROSSOVER) {
-            printf("sync linear\n");
+            printf("shmem_internal_sync 3 PE [%d]\n", shmem_my_pe());
             fflush(stdout);
             shmem_internal_sync_linear(PE_start, PE_stride, PE_size, pSync);
+            printf("shmem_internal_sync 4 PE [%d]\n", shmem_my_pe());
+            fflush(stdout);
         } else {
             printf("sync tree\n");
             fflush(stdout);
@@ -67,7 +78,11 @@ shmem_internal_sync(int PE_start, int PE_stride, int PE_size, long *pSync)
         }
         break;
     case LINEAR:
+        printf("shmem_internal_sync 5 PE [%d]\n", shmem_my_pe());
+        fflush(stdout);
         shmem_internal_sync_linear(PE_start, PE_stride, PE_size, pSync);
+        printf("shmem_internal_sync 6 PE [%d]\n", shmem_my_pe());
+        fflush(stdout);
         break;
     case TREE:
         shmem_internal_sync_tree(PE_start, PE_stride, PE_size, pSync);
@@ -107,8 +122,14 @@ static inline
 void
 shmem_internal_barrier_all(void)
 {
+    printf("Internal barrier all with %d pes on PE[%d]\n", shmem_internal_num_pes, shmem_internal_my_pe);
+    fflush(stdout);
     shmem_internal_quiet(SHMEM_CTX_DEFAULT);
+    printf("Past internal quiet on PE[%d]\n", shmem_internal_my_pe);
+    fflush(stdout);
     shmem_internal_sync(0, 1, shmem_internal_num_pes, shmem_internal_barrier_all_psync);
+    printf("exit Internal barrier all on PE[%d]\n", shmem_internal_my_pe);
+    fflush(stdout);
 }
 
 

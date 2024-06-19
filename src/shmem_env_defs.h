@@ -30,7 +30,12 @@ SHMEM_INTERNAL_ENV_DEF(DEBUG, bool, false, SHMEM_INTERNAL_ENV_CAT_OPENSHMEM,
                        "Enable debugging messages")
 SHMEM_INTERNAL_ENV_DEF(SYMMETRIC_SIZE, size, 512*1024*1024, SHMEM_INTERNAL_ENV_CAT_OPENSHMEM,
                        "Symmetric heap size")
-
+SHMEM_INTERNAL_ENV_DEF(FAST_FORWARD, bool, false, SHMEM_INTERNAL_ENV_CAT_OPENSHMEM,
+                       "Enable catch up mechanism for grown PEs")
+SHMEM_INTERNAL_ENV_DEF(WORKER_PROGRAM, string, "auto", SHMEM_INTERNAL_ENV_CAT_OPENSHMEM,
+                       "Worker executable that will get called by grow")
+SHMEM_INTERNAL_ENV_DEF(WORKER_ARGS, string, "auto", SHMEM_INTERNAL_ENV_CAT_OPENSHMEM,
+                       "Args for worker program")                       
 #ifdef __linux__
 SHMEM_INTERNAL_ENV_DEF(SYMMETRIC_HEAP_USE_HUGE_PAGES, bool, false, SHMEM_INTERNAL_ENV_CAT_OTHER,
                        "Use Linux huge pages for symmetric heap")
