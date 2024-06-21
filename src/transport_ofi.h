@@ -912,7 +912,7 @@ void shmem_transport_get_wait(shmem_transport_ctx_t* ctx)
      */
     uint64_t success, fail, cnt, cnt_new;
     long poll_count = 0;
-    printf("[%d][%d] +shmem_transport_get_wait\n", getpid(), shmem_my_pe()); fflush(stdout);
+    //printf("[%d][%d] +shmem_transport_get_wait\n", getpid(), shmem_my_pe()); fflush(stdout);
     SHMEM_TRANSPORT_OFI_CTX_LOCK(ctx);
 
     while (poll_count < shmem_transport_ofi_get_poll_limit ||
@@ -959,7 +959,7 @@ void shmem_transport_get_wait(shmem_transport_ctx_t* ctx)
    // printf("shmem_transport_get_wait 8 PE[%d]\n", shmem_my_pe());
     //fflush(stdout);
     SHMEM_TRANSPORT_OFI_CTX_UNLOCK(ctx);
-    printf("[%d][%d] -shmem_transport_get_wait\n", getpid(), shmem_my_pe());
+    //printf("[%d][%d] -shmem_transport_get_wait\n", getpid(), shmem_my_pe());
     fflush(stdout);
 }
 

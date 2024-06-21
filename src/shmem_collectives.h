@@ -48,7 +48,7 @@ static inline
 void
 shmem_internal_sync(int PE_start, int PE_stride, int PE_size, long *pSync)
 {
-    printf("[%d][%d] shmem_internal_sync start PE [%d]\n", getpid(), shmem_my_pe(), shmem_my_pe());
+    //printf("[%d][%d] shmem_internal_sync start PE [%d]\n", getpid(), shmem_my_pe(), shmem_my_pe());
     fflush(stdout);
     if (shmem_internal_params.BARRIERS_FLUSH) {
         fflush(stdout);
@@ -61,27 +61,27 @@ shmem_internal_sync(int PE_start, int PE_stride, int PE_size, long *pSync)
         fflush(stdout);
         return;
     }
-    printf("[%d][%d] shmem_internal_sync 2 \n", getpid(), shmem_my_pe());
+    //printf("[%d][%d] shmem_internal_sync 2 \n", getpid(), shmem_my_pe());
     fflush(stdout);
     switch (shmem_internal_barrier_type) {
     case AUTO:
         if (PE_size < shmem_internal_params.COLL_CROSSOVER) {
-            printf("[%d][%d] shmem_internal_sync 3 PE [%d]\n", getpid(), shmem_my_pe(),shmem_my_pe());
+            //printf("[%d][%d] shmem_internal_sync 3 PE [%d]\n", getpid(), shmem_my_pe(),shmem_my_pe());
             fflush(stdout);
             shmem_internal_sync_linear(PE_start, PE_stride, PE_size, pSync);
-            printf("[%d][%d] shmem_internal_sync 4 PE [%d]\n", getpid(), shmem_my_pe(), shmem_my_pe());
+            //printf("[%d][%d] shmem_internal_sync 4 PE [%d]\n", getpid(), shmem_my_pe(), shmem_my_pe());
             fflush(stdout);
         } else {
-            printf("[%d][%d] sync tree\n", getpid(), shmem_my_pe());
+            //printf("[%d][%d] sync tree\n", getpid(), shmem_my_pe());
             fflush(stdout);
             shmem_internal_sync_tree(PE_start, PE_stride, PE_size, pSync);
         }
         break;
     case LINEAR:
-        printf("[%d][%d] shmem_internal_sync 5 PE [%d]\n", getpid(), shmem_my_pe(), shmem_my_pe());
+        //printf("[%d][%d] shmem_internal_sync 5 PE [%d]\n", getpid(), shmem_my_pe(), shmem_my_pe());
         fflush(stdout);
         shmem_internal_sync_linear(PE_start, PE_stride, PE_size, pSync);
-        printf("[%d][%d] shmem_internal_sync 6 PE [%d]\n", getpid(), shmem_my_pe(), shmem_my_pe());
+        //printf("[%d][%d] shmem_internal_sync 6 PE [%d]\n", getpid(), shmem_my_pe(), shmem_my_pe());
         fflush(stdout);
         break;
     case TREE:
@@ -122,14 +122,14 @@ static inline
 void
 shmem_internal_barrier_all(void)
 {
-    printf("[%d][%d] Internal barrier all with %d pes on PE[%d]\n", getpid(), shmem_my_pe(),shmem_internal_num_pes, shmem_internal_my_pe);
-    fflush(stdout);
+    //printf("[%d][%d] Internal barrier all with %d pes on PE[%d]\n", getpid(), shmem_my_pe(),shmem_internal_num_pes, shmem_internal_my_pe);
+    //fflush(stdout);
     shmem_internal_quiet(SHMEM_CTX_DEFAULT);
-    printf("[%d][%d] Past internal quiet on PE[%d]\n", getpid(), shmem_my_pe(),shmem_internal_my_pe);
-    fflush(stdout);
+    //printf("[%d][%d] Past internal quiet on PE[%d]\n", getpid(), shmem_my_pe(),shmem_internal_my_pe);
+    //fflush(stdout);
     shmem_internal_sync(0, 1, shmem_internal_num_pes, shmem_internal_barrier_all_psync);
-    printf("[%d][%d] exit Internal barrier all on PE[%d]\n", getpid(), shmem_my_pe(),shmem_internal_my_pe);
-    fflush(stdout);
+    //printf("[%d][%d] exit Internal barrier all on PE[%d]\n", getpid(), shmem_my_pe(),shmem_internal_my_pe);
+    //fflush(stdout);
 }
 
 

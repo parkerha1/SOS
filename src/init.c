@@ -204,7 +204,7 @@ shmem_internal_grow(int new_size, elastic_callback_t cb)
     int is_child = shmem_internal_params.FAST_FORWARD;
     
     // bman
-    printf("[%d][%d] +shmem_internal_grow(%d): Calling shmem_runtime_grow(%d). is_child=%d \n", getpid(), shmem_internal_my_pe, new_size, new_size, is_child); 
+    //printf("[%d][%d] +shmem_internal_grow(%d): Calling shmem_runtime_grow(%d). is_child=%d \n", getpid(), shmem_internal_my_pe, new_size, new_size, is_child); 
     fflush(stdout);
     //
 
@@ -212,14 +212,14 @@ shmem_internal_grow(int new_size, elastic_callback_t cb)
 
     if (ret == 0) 
     {
-        printf("[%d][%d] shmem_internal_grow(): Reassigning shmem_internal_num_pes from %d to: %d\n", getpid(), shmem_internal_my_pe, shmem_internal_num_pes, shmem_runtime_get_size()); fflush(stdout);
+        //printf("[%d][%d] shmem_internal_grow(): Reassigning shmem_internal_num_pes from %d to: %d\n", getpid(), shmem_internal_my_pe, shmem_internal_num_pes, shmem_runtime_get_size()); fflush(stdout);
         shmem_internal_my_pe = shmem_runtime_get_rank();
         shmem_internal_num_pes = shmem_runtime_get_size();
     
-        printf("[%d][%d] shmem_internal_grow(): Calling shmem_transport_reinit()...\n", getpid(), shmem_internal_my_pe); fflush(stdout);
+        //printf("[%d][%d] shmem_internal_grow(): Calling shmem_transport_reinit()...\n", getpid(), shmem_internal_my_pe); fflush(stdout);
         ret = shmem_transport_reinit();
         
-        printf("[%d][%d] shmem_internal_grow(): ...Finished shmem_transport_reinit(). \n", getpid(), shmem_internal_my_pe); fflush(stdout);
+        //printf("[%d][%d] shmem_internal_grow(): ...Finished shmem_transport_reinit(). \n", getpid(), shmem_internal_my_pe); fflush(stdout);
         shmem_runtime_barrier();
         if (ret != 0) 
         {
@@ -228,7 +228,7 @@ shmem_internal_grow(int new_size, elastic_callback_t cb)
         }
         if (cb != NULL && is_child) 
         {
-            printf("[%d][%d] shmem_transport_reinit(): Calling the callback func with num_pes = %d\n", getpid(), shmem_internal_my_pe, shmem_internal_num_pes); fflush(stdout);
+            //printf("[%d][%d] shmem_transport_reinit(): Calling the callback func with num_pes = %d\n", getpid(), shmem_internal_my_pe, shmem_internal_num_pes); fflush(stdout);
             cb(shmem_internal_num_pes);
         }
     } 
@@ -237,11 +237,11 @@ shmem_internal_grow(int new_size, elastic_callback_t cb)
         printf("[%d][%d] !!!! ERROR IN GROW !!!\n", getpid(), shmem_internal_my_pe);fflush(stdout);
         exit(1);
     }
-    printf("[%d][%d] shmem_transport_reinit(): Entering internal grow barrier...\n", getpid(), shmem_internal_my_pe); fflush(stdout);
+    //printf("[%d][%d] shmem_transport_reinit(): Entering internal grow barrier...\n", getpid(), shmem_internal_my_pe); fflush(stdout);
 
     shmem_barrier_all();
 
-    printf("[%d][%d] -shmem_internal_grow() \n", getpid(), shmem_internal_my_pe); fflush(stdout);
+    //printf("[%d][%d] -shmem_internal_grow() \n", getpid(), shmem_internal_my_pe); fflush(stdout);
 
     return ret; 
 }

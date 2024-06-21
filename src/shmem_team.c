@@ -132,7 +132,7 @@ int shmem_internal_team_init(void)
         }
 
         // bman
-        printf("[%d][%d] ==>BMAN: shmem_internal_team_init(): 'size'=%d, shmem_runtime_get_node_size()=%d \n ", getpid(), shmem_internal_my_pe, size, shmem_runtime_get_node_size()); fflush(stdout);
+        //printf("[%d][%d] ==>BMAN: shmem_internal_team_init(): 'size'=%d, shmem_runtime_get_node_size()=%d \n ", getpid(), shmem_internal_my_pe, size, shmem_runtime_get_node_size()); fflush(stdout);
         // R: pe0: 'size'=1, shmem_runtime_get_node_size()=1 
         //    pe1: 'size'=1, shmem_runtime_get_node_size()=1 
         // These pass through ok.
@@ -142,9 +142,9 @@ int shmem_internal_team_init(void)
         // These fail.  Node size went from 1->0.  Why?
 
         // debug
-        if (size > 0 && size <= shmem_runtime_get_node_size()) {
-            printf("==>BMAN: We should PASS the assert given the conditions<== \n"); fflush(stdout);
-        }
+        //if (size > 0 && size <= shmem_runtime_get_node_size()) {
+        //    printf("==>BMAN: We should PASS the assert given the conditions<== \n"); fflush(stdout);
+        //}
         // R: on first passes through ok because get_node_size() returns 1.
         //    the re-init call is seeing a 0.
         //

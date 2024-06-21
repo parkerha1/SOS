@@ -1855,7 +1855,6 @@ int shmem_transport_reinit() {
     }
 
 #if 1
-    // bman: this crashes. Parker is not doing this.  I think we should, but it fails.
     printf("\n\n[%d][%d]**** BEGIN DEBUG SECTION **** \n", getpid(), shmem_internal_my_pe); fflush(stdout);
     
     ret = shmem_internal_team_init();
