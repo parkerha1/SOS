@@ -100,10 +100,12 @@ shmem_runtime_init(int enable_node_ranks)
     kv_store_me = (char*)malloc(MAX_KV_COUNT * sizeof(char)* MAX_KV_LENGTH);
     if (NULL == kv_store_me) return 8;
 
+#if 0
     if (size > 1 && enable_node_ranks) {
         node_ranks = malloc(size * sizeof(int));
         if (NULL == node_ranks) return 8;
     }
+#endif
 
     return 0;
 }
@@ -354,15 +356,34 @@ shmem_runtime_get_node_rank(int pe)
 {
     shmem_internal_assert(pe < size && pe >= 0);
 
+    // dbg
+    printf("[%d] +shmem_runtime_get_node_rank(%d). size = %d \n", getpid(), pe, size); fflush(stdout);
+    //
+
     if (size == 1) {
         return 0;
     }
 
-    if (node_ranks[pe] != MPI_UNDEFINED) {
+    // dbg: i like this check here
+    if (!node_ranks) {
+        printf("[%d] !!! shmem_runtime_get_node_rank(): node_ranks[] is NULL!  \n", getpid()); fflush(stdout);
+    }
+    //
+
+#if 0
+    if (node_ranks[pe] != MPI_UNDEFINED) 
+    {
         return node_ranks[pe];
-    } else {
+    } 
+    else 
+    {
         return -1;
     }
+#else
+    printf("[%d] !! shmem_runtime_get_node_rank(): Hack: Returning pe (%d). \n", getpid(), pe); fflush(stdout);
+    return pe;   
+#endif
+
 }
 
 int
@@ -372,10 +393,16 @@ shmem_runtime_get_node_size(void)
     printf("[%d] +shmem_runtime_get_node_size(): size = %d, node_size = %d \n", getpid(), size, node_size); fflush(stdout);
 
     if (size == 1) {
+        printf("[%d] shmem_runtime_get_node_size(): Returning hard-coded 1. \n", getpid()); fflush(stdout);
         return 1;
     }
 
+#if 0
     return node_size;
+#else
+    printf("[%d] !! HACK !! shmem_runtime_get_node_size(): Returning size instead of node_size! \n", getpid()); fflush(stdout);
+    return size;    
+#endif
 }
 
 int

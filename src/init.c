@@ -442,7 +442,10 @@ shmem_internal_heap_postinit(void)
               shmem_internal_data_base, shmem_internal_data_length);
 
 #ifdef HAVE_SCHED_GETAFFINITY
-#ifdef USE_HWLOC
+    blow();         // bman: safety 
+#ifdef USE_HWLOC    
+    me();           // bman: safey
+
     ret = hwloc_topology_init(&shmem_internal_topology);
     SHMEM_CHECK_GOTO_MSG(ret != 0, hwloc_exit, "hwloc_topology_init failed (%s). Please verify your hwloc installation\n", strerror(errno));
 

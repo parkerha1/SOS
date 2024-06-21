@@ -1854,12 +1854,18 @@ int shmem_transport_reinit() {
         goto cleanup_postinit;
     }
 
+#if 1
+    // bman: this crashes. Parker is not doing this.  I think we should, but it fails.
+    printf("\n\n[%d][%d]**** BEGIN DEBUG SECTION **** \n", getpid(), shmem_internal_my_pe); fflush(stdout);
+    
     ret = shmem_internal_team_init();
     if (ret != 0) {
         RETURN_ERROR_MSG("Initialization of teams failed (%d)\n", ret);
         goto cleanup_postinit;
     }
-
+#else
+    printf("*** !! BYPASSING shmem_internal_team_init() call during re-init! \n"); fflush(stdout);        
+#endif
 
 cleanup_postinit:
     return ret;

@@ -419,8 +419,10 @@ AC_CACHE_SAVE
 AC_SEARCH_LIBS([clock_gettime], [rt],
                [AC_DEFINE([HAVE_CLOCK_GETTIME], [1], [define if clock_gettime is available]) ])
 
+
+# bman hack: change default to 0
 CHECK_SCHED_GETAFFINITY(
-    [AC_DEFINE([HAVE_SCHED_GETAFFINITY], [1], [define if sched_getaffinity is available])], [])
+    [AC_DEFINE([HAVE_SCHED_GETAFFINITY], [0], [define if sched_getaffinity is available])], [])
 
 AC_SEARCH_LIBS([ceil], [m], [], AC_MSG_ERROR([unable to find ceil() function]))
 
