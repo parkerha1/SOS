@@ -484,14 +484,14 @@ void shmem_transport_put_quiet(shmem_transport_ctx_t* ctx)
 static inline
 int shmem_transport_quiet(shmem_transport_ctx_t* ctx)
 {
-    printf("shmem_transport_quiet 0 PE[%d]\n", shmem_my_pe());
-    fflush(stdout);
+    //printf("shmem_transport_quiet 0 PE[%d]\n", shmem_my_pe());
+    //fflush(stdout);
     shmem_transport_put_quiet(ctx);
-    printf("shmem_transport_quiet 1 PE[%d]\n", shmem_my_pe());
-    fflush(stdout);
+    //printf("shmem_transport_quiet 1 PE[%d]\n", shmem_my_pe());
+    //fflush(stdout);
     shmem_transport_get_wait(ctx);
-    printf("shmem_transport_quiet 2 PE[%d]\n", shmem_my_pe());
-    fflush(stdout);
+    //printf("shmem_transport_quiet 2 PE[%d]\n", shmem_my_pe());
+    //fflush(stdout);
 
     return 0;
 }

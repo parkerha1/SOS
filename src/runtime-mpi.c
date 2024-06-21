@@ -360,12 +360,7 @@ shmem_runtime_get_node_rank(int pe)
         return 0;
     }
 
-    // dbg: i like this check here
-    if (!node_ranks) {
-        printf("[%d] !!! ERR: shmem_runtime_get_node_rank(): node_ranks[] is NULL!  \n", getpid()); fflush(stdout);
-    }
-    //
-
+    // bman hack: we have a bit of a house of cards to be aware of - single node only.
 #if 0
     if (node_ranks[pe] != MPI_UNDEFINED) 
     {

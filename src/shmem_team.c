@@ -163,11 +163,11 @@ int shmem_internal_team_init(void)
                   shmem_internal_team_shared.size);
 
         // dbg
-        printf("==>BMAN:1 \n"); fflush(stdout);                  
+        //printf("==>BMAN:1 \n"); fflush(stdout);                  
     }
 
     // dbg
-    printf("==>BMAN:1.1 \n"); fflush(stdout);                  
+    //printf("==>BMAN:1.1 \n"); fflush(stdout);                  
 
     /* Search for on-node peer PEs while checking for a consistent stride */
     int start = -1, stride = -1, size = 0;
@@ -176,14 +176,14 @@ int shmem_internal_team_init(void)
         int ret = shmem_runtime_get_node_rank(pe);
 
         // dbg
-        printf("==>BMAN:1.2 \n"); fflush(stdout);                  
+        //printf("==>BMAN:1.2 \n"); fflush(stdout);                  
 
         if (ret < 0) continue;
 
         ret = check_for_linear_stride(pe, &start, &stride, &size);
 
         // dbg
-        printf("==>BMAN:1.3 \n"); fflush(stdout);                  
+        //printf("==>BMAN:1.3 \n"); fflush(stdout);                  
 
         if (ret < 0) {
             start = shmem_internal_my_pe;
@@ -195,7 +195,7 @@ int shmem_internal_team_init(void)
     shmem_internal_assert(size > 0 && size == shmem_runtime_get_node_size());
 
     // dbg
-    printf("==>BMAN:2 \n"); fflush(stdout);                  
+    //printf("==>BMAN:2 \n"); fflush(stdout);                  
 
     shmem_internal_team_node.start = start;
     shmem_internal_team_node.stride = (stride == -1) ? 1 : stride;
@@ -208,7 +208,7 @@ int shmem_internal_team_init(void)
               shmem_internal_team_node.start, shmem_internal_team_node.stride,
               shmem_internal_team_node.size);
     // dbg
-    printf("==>BMAN:3 \n"); fflush(stdout);                  
+    //printf("==>BMAN:3 \n"); fflush(stdout);                  
 
     if (shmem_internal_params.TEAMS_MAX > N_PSYNC_BYTES * CHAR_BIT) {
         RETURN_ERROR_MSG("Requested %ld teams, but only %d are supported\n",
@@ -222,7 +222,7 @@ int shmem_internal_team_init(void)
     shmem_internal_team_pool = malloc(shmem_internal_params.TEAMS_MAX *
                                       sizeof(shmem_internal_team_t*));
     // dbg
-    printf("==>BMAN:4 \n"); fflush(stdout);                  
+    //printf("==>BMAN:4 \n"); fflush(stdout);                  
 
     for (long i = 0; i < shmem_internal_params.TEAMS_MAX; i++) {
         shmem_internal_team_pool[i] = NULL;

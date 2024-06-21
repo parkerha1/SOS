@@ -24,30 +24,30 @@ static inline void
 shmem_internal_quiet(shmem_ctx_t ctx)
 {
     int ret;
-    printf("Shmem internal quiet 0, PE[%d]\n", shmem_my_pe());
-    fflush(stdout);
+    //printf("Shmem internal quiet 0, PE[%d]\n", shmem_my_pe());
+    //fflush(stdout);
     if (ctx == SHMEM_CTX_INVALID)
         return;
-    printf("Shmem internal quiet 1\n");
-    fflush(stdout);
+    //printf("Shmem internal quiet 1\n");
+    //fflush(stdout);
     ret = shmem_transport_quiet((shmem_transport_ctx_t *)ctx);
     if (0 != ret) {
         printf("Shmem transport error: %d\n", ret);
         fflush(stdout);
         RAISE_ERROR(ret); 
         }
-    printf("Shmem internal quiet 2\n");
-    fflush(stdout);
+    //printf("Shmem internal quiet 2\n");
+    //fflush(stdout);
     shmem_internal_membar();
-    printf("Shmem internal quiet 3\n");
-    fflush(stdout);
+    //printf("Shmem internal quiet 3\n");
+    //fflush(stdout);
     /* Transport level memory flush is required to make memory 
      * changes (i.e. subsequent coherent load operations 
      * performed via the shmem_ptr API, the result of atomics 
      * that targeted the local process) visible */
     shmem_transport_syncmem();
-    printf("Shmem internal quiet 4\n");
-    fflush(stdout);
+    //printf("Shmem internal quiet 4\n");
+    //fflush(stdout);
 }
 
 
