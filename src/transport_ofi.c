@@ -1585,6 +1585,7 @@ static int shmem_transport_ofi_ctx_init(shmem_transport_ctx_t *ctx, int id)
     SHMEM_MUTEX_INIT(ctx->lock);
 #endif
 
+    
     ret = fi_cntr_open(shmem_transport_ofi_domainfd, &cntr_put_attr,
                        &ctx->put_cntr, NULL);
     OFI_CHECK_RETURN_MSG(ret, "put_cntr creation failed (%s)\n", fi_strerror(errno));
@@ -1613,6 +1614,21 @@ static int shmem_transport_ofi_ctx_init(shmem_transport_ctx_t *ctx, int id)
     shmem_transport_ofi_stx_allocate(ctx);
 
     ret = bind_enable_ep_resources(ctx);
+
+    // DEBUG_MSG("shmem_transport_ofi_ctx_init id = %d, options = %#0lx, stx_idx = %d\n"
+    //               RAISE_PE_PREFIX "pending_put_cntr = %9"PRIu64", completed_put_cntr = %9"PRIu64"\n"
+    //               RAISE_PE_PREFIX "pending_get_cntr = %9"PRIu64", completed_get_cntr = %9"PRIu64"\n"
+    //               RAISE_PE_PREFIX "pending_bb_cntr  = %9"PRIu64", completed_bb_cntr  = %9"PRIu64"\n",
+    //               ctx->id, (unsigned long) ctx->options, ctx->stx_idx,
+    //               shmem_internal_my_pe,
+    //               SHMEM_TRANSPORT_OFI_CNTR_READ(&ctx->pending_put_cntr),
+    //               ctx->put_cntr ? fi_cntr_read(ctx->put_cntr) : 0,
+    //               shmem_internal_my_pe,
+    //               SHMEM_TRANSPORT_OFI_CNTR_READ(&ctx->pending_get_cntr),
+    //               ctx->get_cntr ? fi_cntr_read(ctx->get_cntr) : 0,
+    //               shmem_internal_my_pe,
+    //               ctx->pending_bb_cntr, ctx->completed_bb_cntr
+    //              );
     OFI_CHECK_RETURN_MSG(ret, "context bind/enable endpoint failed (%s)\n", fi_strerror(errno));
 
     if (ctx->options & SHMEMX_CTX_BOUNCE_BUFFER &&
@@ -1821,6 +1837,13 @@ int shmem_transport_startup(void)
 
 int shmem_transport_reinit() {
     int ret;
+    printf("Destroying transport context PE[%d]\n", shmem_my_pe()); fflush(stdout);
+    shmem_transport_quiet(&shmem_transport_ctx_default);
+    shmem_transport_ctx_destroy(&shmem_transport_ctx_default);
+
+
+    printf("Finished destroying transport context PE[%d]\n", shmem_my_pe()); fflush(stdout);
+
     /* Initialize transport devices */
     ret = shmem_transport_init();
     if (0 != ret) {
@@ -1847,6 +1870,20 @@ int shmem_transport_reinit() {
         RETURN_ERROR_MSG("Transport startup failed (%d)\n", ret);
         goto cleanup_postinit;
     }
+    shmem_transport_ctx_t* ctx = &shmem_transport_ctx_default;
+    
+    fflush(stdout);
+    fi_cntr_set(ctx->get_cntr, SHMEM_TRANSPORT_OFI_CNTR_READ(&ctx->pending_get_cntr)); // Hack to get past ghost counter
+    DEBUG_MSG("id = %d, options = %#0lx, stx_idx = %d\n"
+                  RAISE_PE_PREFIX "pending_get_cntr = %9"PRIu64", completed_get_cntr = %9"PRIu64"\n"
+                  RAISE_PE_PREFIX "pending_bb_cntr  = %9"PRIu64", completed_bb_cntr  = %9"PRIu64"\n",
+                  ctx->id, (unsigned long) ctx->options, ctx->stx_idx,
+                  shmem_internal_my_pe,
+                  SHMEM_TRANSPORT_OFI_CNTR_READ(&ctx->pending_get_cntr),
+                  ctx->get_cntr ? fi_cntr_read(ctx->get_cntr) : 0,
+                  shmem_internal_my_pe,
+                  ctx->pending_bb_cntr, ctx->completed_bb_cntr
+                 ); fflush(stdout);
     
     ret = shmem_internal_collectives_init();
     if (ret != 0) {
