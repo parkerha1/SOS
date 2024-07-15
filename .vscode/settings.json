@@ -1,0 +1,26 @@
+{
+    "files.associations": {
+        "__locale": "cpp",
+        "functional": "cpp",
+        "time.h": "c",
+        "__functional_base_03": "c",
+        "__hash_table": "c",
+        "__tree": "c",
+        "algorithm": "c",
+        "array": "c",
+        "atomic": "c",
+        "chrono": "c",
+        "compare": "c",
+        "type_traits": "c",
+        "filesystem": "c",
+        "forward_list": "c",
+        "limits": "c",
+        "memory": "c",
+        "random": "c",
+        "ratio": "c",
+        "tuple": "c",
+        "utility": "c",
+        "istream": "c",
+        "ostream": "c"
+    }
+}

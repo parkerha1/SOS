@@ -181,6 +181,8 @@ shmem_runtime_grow(int new_size) {
             return -1;
         }
         shmem_internal_params.FAST_FORWARD = 0;
+
+        node_ranks = NULL;
     }
     // At this point, `joint_comm` includes both old and new processes
     MPI_Barrier(new_world); 
@@ -336,8 +338,9 @@ shmem_runtime_get_node_rank(int pe)
 
     if (size == 1) {
         return 0;
+    } else {
+        return pe;
     }
-
     if (node_ranks[pe] != MPI_UNDEFINED) {
         return node_ranks[pe];
     } else {
